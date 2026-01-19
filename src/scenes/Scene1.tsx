@@ -42,24 +42,23 @@ function Scene1() {
             // If we hit the zoom limit, don't change anything
             if (newZoom === z) return;
 
-            // Calculate the actual zoom factor applied
-            const actualZoomFactor = newZoom / z;
-
-            // Convert pixel to complex using CURRENT state
+            // Convert pixel position to complex coordinates using CURRENT zoom
             const scale = 4 / (z * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT));
-            const targetX = cx + (pixelX - CANVAS_WIDTH / 2) * scale;
-            const targetY = cy + (pixelY - CANVAS_HEIGHT / 2) * scale;
+            const mouseComplexX = cx + (pixelX - CANVAS_WIDTH / 2) * scale;
+            const mouseComplexY = cy + (pixelY - CANVAS_HEIGHT / 2) * scale;
 
-            // Compute new center to keep target point fixed
-            const offsetX = cx - targetX;
-            const offsetY = cy - targetY;
-            const newCenterX = targetX + offsetX / actualZoomFactor;
-            const newCenterY = targetY + offsetY / actualZoomFactor;
+            // Calculate the actual zoom ratio
+            const zoomRatio = z / newZoom;
 
-            // Update ref IMMEDIATELY
+            // The key insight: after zooming, the mouse position in complex space should remain the same.
+            // newCenter = mouseComplex + (oldCenter - mouseComplex) * (oldZoom / newZoom)
+            const newCenterX = mouseComplexX + (cx - mouseComplexX) * zoomRatio;
+            const newCenterY = mouseComplexY + (cy - mouseComplexY) * zoomRatio;
+
+            // Update ref IMMEDIATELY for the next event
             stateRef.current = { centerX: newCenterX, centerY: newCenterY, zoom: newZoom };
 
-            // Update React state
+            // Update React state for rendering
             setCenterX(newCenterX);
             setCenterY(newCenterY);
             setZoom(newZoom);
@@ -132,7 +131,7 @@ function Scene1() {
             {/* Scene 1 UI Overlay - AGCube style */}
             <div className="overlay-container">
                 <div className="glass-card title-card">
-                    <h1>Mandelbrot Set</h1>
+                    <h1>Mandelbrot Display</h1>
                     <p>Scroll to zoom • Drag to pan</p>
                 </div>
 

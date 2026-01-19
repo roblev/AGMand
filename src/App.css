@@ -790,6 +790,16 @@ footer sub {
   gap: 20px;
 }
 
+.scene4-right-panel {
+  width: 400px;
+  max-height: 620px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow: hidden;
+}
+
+.scene4-right-panel h2,
 .scene4-left-panel h2 {
   margin: 0;
   font-size: 1.25rem;
@@ -807,17 +817,74 @@ footer sub {
 }
 
 .scene4-polynomial-display {
+  flex: 1;
   padding: 16px;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
 }
 
 .scene4-polynomial-display .formula-item.current {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   padding: 0;
   background: transparent;
   border: none;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.scene4-polynomial-display .formula-rhs {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.formula-too-big {
+  font-style: italic;
+  color: var(--text-secondary);
+}
+
+.scene4-slider-control {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.scene4-slider-control label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.iteration-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+}
+
+.iteration-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  background: var(--accent);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.slider-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
 }
 
 .scene4-legend {
@@ -862,8 +929,9 @@ footer sub {
 }
 
 .scene4-hint {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--text-secondary);
+  flex-shrink: 0;
 }
 
 .scene4-hint kbd {
@@ -882,6 +950,7 @@ footer sub {
 }
 
 .scene4-canvas-wrapper {
+  flex-shrink: 0;
   position: relative;
   border-radius: 12px;
   overflow: hidden;

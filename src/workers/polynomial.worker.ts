@@ -1,9 +1,4 @@
-// Web Worker for evaluating polynomial across complex plane
-
-interface Term {
-    coefficient: number;
-    power: number;
-}
+// Web Worker for iterative Mandelbrot calculation across complex plane
 
 interface WorkerMessage {
     width: number;
@@ -11,65 +6,34 @@ interface WorkerMessage {
     centerX: number;
     centerY: number;
     scale: number;
-    polynomial: Term[];
+    iterations: number;
 }
 
-// Evaluate polynomial at complex number c
-// Returns the magnitude of the result
-function evaluatePolynomial(polynomial: Term[], cRe: number, cIm: number): number {
-    if (polynomial.length === 0) {
-        return 0;
+// Calculate z_n iteratively using z = z² + c
+// Returns the magnitude of z after n iterations
+function calculateMandelbrotIteration(cRe: number, cIm: number, iterations: number): number {
+    if (iterations === 0) {
+        return 0; // z₀ = 0
     }
 
-    let resultRe = 0;
-    let resultIm = 0;
+    let zRe = 0;
+    let zIm = 0;
 
-    for (const term of polynomial) {
-        // Compute c^power
-        const { re: powerRe, im: powerIm } = complexPow(cRe, cIm, term.power);
+    for (let i = 0; i < iterations; i++) {
+        // z = z² + c
+        const newRe = zRe * zRe - zIm * zIm + cRe;
+        const newIm = 2 * zRe * zIm + cIm;
+        zRe = newRe;
+        zIm = newIm;
 
-        // Multiply by coefficient
-        resultRe += term.coefficient * powerRe;
-        resultIm += term.coefficient * powerIm;
+        // Early bailout if magnitude exceeds a large threshold (escaped to infinity)
+        if (zRe * zRe + zIm * zIm > 1e20) {
+            return Infinity;
+        }
     }
 
     // Return magnitude
-    return Math.sqrt(resultRe * resultRe + resultIm * resultIm);
-}
-
-// Compute complex number raised to integer power
-function complexPow(re: number, im: number, power: number): { re: number; im: number } {
-    if (power === 0) {
-        return { re: 1, im: 0 };
-    }
-    if (power === 1) {
-        return { re, im };
-    }
-
-    // Use repeated squaring for efficiency
-    let resultRe = 1;
-    let resultIm = 0;
-    let baseRe = re;
-    let baseIm = im;
-    let p = power;
-
-    while (p > 0) {
-        if (p & 1) {
-            // result = result * base
-            const newRe = resultRe * baseRe - resultIm * baseIm;
-            const newIm = resultRe * baseIm + resultIm * baseRe;
-            resultRe = newRe;
-            resultIm = newIm;
-        }
-        // base = base * base
-        const newBaseRe = baseRe * baseRe - baseIm * baseIm;
-        const newBaseIm = 2 * baseRe * baseIm;
-        baseRe = newBaseRe;
-        baseIm = newBaseIm;
-        p >>= 1;
-    }
-
-    return { re: resultRe, im: resultIm };
+    return Math.sqrt(zRe * zRe + zIm * zIm);
 }
 
 // Map magnitude to color with contour at magnitude = 2
@@ -126,7 +90,7 @@ function magnitudeToColor(magnitude: number): { r: number; g: number; b: number 
 }
 
 self.onmessage = (e: MessageEvent<WorkerMessage>) => {
-    const { width, height, centerX, centerY, scale, polynomial } = e.data;
+    const { width, height, centerX, centerY, scale, iterations } = e.data;
 
     const imageData = new Uint8ClampedArray(width * height * 4);
 
@@ -136,8 +100,8 @@ self.onmessage = (e: MessageEvent<WorkerMessage>) => {
             const cRe = centerX + (px - width / 2) * scale;
             const cIm = centerY + (py - height / 2) * scale;
 
-            // Evaluate polynomial
-            const magnitude = evaluatePolynomial(polynomial, cRe, cIm);
+            // Calculate magnitude using iterative Mandelbrot
+            const magnitude = calculateMandelbrotIteration(cRe, cIm, iterations);
 
             // Convert to color
             const { r, g, b } = magnitudeToColor(magnitude);

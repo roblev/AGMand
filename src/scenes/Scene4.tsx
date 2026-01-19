@@ -119,16 +119,27 @@ function formatPolynomialJSX(terms: Term[]): React.ReactNode {
     );
 }
 
-const MAX_ITERATIONS = 8;
+// Maximum iterations for polynomial display (beyond this, show "polynomial too big")
+const MAX_POLYNOMIAL_DISPLAY = 8;
+// Pre-generate polynomials for display (only up to z₈)
+const displayPolynomials = generatePolynomials(MAX_POLYNOMIAL_DISPLAY);
+
+// Generate formula display for current iteration
+function getIterationFormula(n: number): React.ReactNode {
+    if (n <= MAX_POLYNOMIAL_DISPLAY) {
+        return formatPolynomialJSX(displayPolynomials[n]);
+    }
+    return <span className="formula-too-big">(polynomial too big)</span>;
+}
+
+const MAX_ITERATIONS = 1000;
 const CANVAS_SIZE = 600;
-const polynomials = generatePolynomials(MAX_ITERATIONS);
 
 function Scene4() {
     const [currentIteration, setCurrentIteration] = useState(0);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const workerRef = useRef<Worker | null>(null);
     const renderIdRef = useRef(0);
-    const [isRendering, setIsRendering] = useState(false);
 
     // Initialize Web Worker
     useEffect(() => {
@@ -152,7 +163,6 @@ function Scene4() {
         if (!ctx) return;
 
         const currentRenderId = ++renderIdRef.current;
-        setIsRendering(true);
 
         const handleMessage = (e: MessageEvent) => {
             if (currentRenderId !== renderIdRef.current) return;
@@ -162,22 +172,20 @@ function Scene4() {
             const imgData = new ImageData(data, CANVAS_SIZE, CANVAS_SIZE);
 
             ctx.putImageData(imgData, 0, 0);
-            setIsRendering(false);
 
             worker.removeEventListener('message', handleMessage);
         };
 
         worker.addEventListener('message', handleMessage);
 
-        // Send polynomial to worker
-        const polynomial = polynomials[currentIteration];
+        // Send iteration count to worker for iterative Mandelbrot calculation
         worker.postMessage({
             width: CANVAS_SIZE,
             height: CANVAS_SIZE,
-            centerX: 0,
+            centerX: -0.5,
             centerY: 0,
             scale: 4 / CANVAS_SIZE, // Show range from -2 to 2
-            polynomial: polynomial,
+            iterations: currentIteration,
         });
     }, [currentIteration]);
 
@@ -210,12 +218,41 @@ function Scene4() {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [handleKeyDown]);
 
-    const currentPolynomial = polynomials[currentIteration];
+
 
     return (
         <div className="scene4-container">
-            {/* Left: Polynomial display */}
-            <div className="scene4-left-panel glass-card">
+            {/* Left: Complex plane visualization */}
+            <div className="scene4-canvas-wrapper">
+                <canvas
+                    ref={canvasRef}
+                    width={CANVAS_SIZE}
+                    height={CANVAS_SIZE}
+                />
+                {/* Axis labels */}
+                <div className="axis-label axis-label-re">Re</div>
+                <div className="axis-label axis-label-im">Im</div>
+            </div>
+
+            {/* Right: Polynomial display */}
+            <div className="scene4-right-panel glass-card">
+                <div className="scene4-slider-control">
+                    <label htmlFor="iteration-slider">Iteration: {currentIteration}</label>
+                    <input
+                        type="range"
+                        id="iteration-slider"
+                        min="0"
+                        max={MAX_ITERATIONS}
+                        value={currentIteration}
+                        onChange={(e) => setCurrentIteration(parseInt(e.target.value, 10))}
+                        className="iteration-slider"
+                    />
+                    <div className="slider-labels">
+                        <span>0</span>
+                        <span>{MAX_ITERATIONS}</span>
+                    </div>
+                </div>
+
                 <h2>Polynomial Visualization</h2>
                 <p className="scene4-subtitle">
                     Evaluating <span className="math-var">z</span>{formatSubscript(currentIteration)} across the complex plane
@@ -228,24 +265,8 @@ function Scene4() {
                         </span>
                         <span className="formula-equals"> = </span>
                         <span className="formula-rhs">
-                            {formatPolynomialJSX(currentPolynomial)}
+                            {getIterationFormula(currentIteration)}
                         </span>
-                    </div>
-                </div>
-
-                <div className="scene4-legend">
-                    <h3>Color Legend</h3>
-                    <div className="legend-item">
-                        <div className="legend-color inside"></div>
-                        <span>|<span className="math-var">z</span>{formatSubscript(currentIteration)}| &lt; 2</span>
-                    </div>
-                    <div className="legend-item">
-                        <div className="legend-color contour"></div>
-                        <span>|<span className="math-var">z</span>{formatSubscript(currentIteration)}| = 2 (contour)</span>
-                    </div>
-                    <div className="legend-item">
-                        <div className="legend-color outside"></div>
-                        <span>|<span className="math-var">z</span>{formatSubscript(currentIteration)}| &gt; 2</span>
                     </div>
                 </div>
 
@@ -253,24 +274,6 @@ function Scene4() {
                     <kbd>←</kbd> <kbd>→</kbd> or <kbd>Space</kbd> to navigate iterations
                     {currentIteration === MAX_ITERATIONS && <span className="reset-hint"> (Space to reset)</span>}
                 </div>
-            </div>
-
-            {/* Right: Complex plane visualization */}
-            <div className="scene4-canvas-wrapper">
-                <canvas
-                    ref={canvasRef}
-                    width={CANVAS_SIZE}
-                    height={CANVAS_SIZE}
-                />
-                {isRendering && (
-                    <div className="rendering-overlay">
-                        <div className="spinner"></div>
-                        <span>Calculating...</span>
-                    </div>
-                )}
-                {/* Axis labels */}
-                <div className="axis-label axis-label-re">Re</div>
-                <div className="axis-label axis-label-im">Im</div>
             </div>
 
             {/* Title overlay */}

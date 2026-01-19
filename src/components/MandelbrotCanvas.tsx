@@ -27,9 +27,14 @@ const MandelbrotCanvas: React.FC<MandelbrotCanvasProps> = React.memo(({
     const [isRendering, setIsRendering] = useState(false);
     const renderIdRef = useRef(0);
 
-    // Drag state
-    const isDraggingRef = useRef(false);
+    // Use STATE for dragging so that changing it re-runs the wheel listener effect
+    // This causes the listener to be removed and re-added, clearing any queued events
+    const [isDragging, setIsDragging] = useState(false);
     const lastMousePosRef = useRef<{ x: number; y: number } | null>(null);
+
+    // Store onZoom in a ref to avoid recreating the wheel handler
+    const onZoomRef = useRef(onZoom);
+    onZoomRef.current = onZoom;
 
     // Initialize Web Worker
     useEffect(() => {
@@ -86,29 +91,46 @@ const MandelbrotCanvas: React.FC<MandelbrotCanvasProps> = React.memo(({
         return () => clearTimeout(timer);
     }, [render]);
 
-    // Mouse wheel for zooming
-    const handleWheel = useCallback(
-        (e: React.WheelEvent<HTMLCanvasElement>) => {
+    // Wheel event listener - depends on isDragging state
+    // When isDragging changes, this effect runs again, removing the old listener
+    // and adding a new one (or not adding one if dragging)
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        // Don't add wheel listener when dragging - this prevents any queued events from firing
+        if (isDragging) {
+            return;
+        }
+
+        const handleWheel = (e: WheelEvent) => {
             e.preventDefault();
-            const canvas = canvasRef.current;
-            if (!canvas) return;
+            e.stopPropagation();
 
             const rect = canvas.getBoundingClientRect();
             const px = e.clientX - rect.left;
             const py = e.clientY - rect.top;
 
-            // Smoother zoom factor for better precision control
-            const zoomFactor = e.deltaY < 0 ? 1.25 : 1 / 1.25;
-            onZoom(px, py, zoomFactor);
-        },
-        [onZoom]
-    );
+            // Normalize deltaY to handle different scroll speeds
+            const normalizedDelta = Math.max(-3, Math.min(3, e.deltaY / 100));
+            const baseFactor = 1.15;
+            const zoomFactor = Math.pow(baseFactor, -normalizedDelta);
+
+            onZoomRef.current(px, py, zoomFactor);
+        };
+
+        canvas.addEventListener('wheel', handleWheel, { passive: false });
+
+        return () => {
+            canvas.removeEventListener('wheel', handleWheel);
+        };
+    }, [isDragging]); // Re-run when isDragging changes
 
     // Mouse down - start dragging and notify point
     const handleMouseDown = useCallback(
         (e: React.MouseEvent<HTMLCanvasElement>) => {
             if (e.button === 0) {
-                isDraggingRef.current = true;
+                setIsDragging(true);
                 lastMousePosRef.current = { x: e.clientX, y: e.clientY };
 
                 // Notify about mouse down point for iteration display
@@ -128,7 +150,7 @@ const MandelbrotCanvas: React.FC<MandelbrotCanvasProps> = React.memo(({
 
     // Mouse up - end drag and notify
     const handleMouseUp = useCallback(() => {
-        isDraggingRef.current = false;
+        setIsDragging(false);
         lastMousePosRef.current = null;
         onMouseUpPoint?.();
     }, [onMouseUpPoint]);
@@ -143,12 +165,13 @@ const MandelbrotCanvas: React.FC<MandelbrotCanvasProps> = React.memo(({
             const px = e.clientX - rect.left;
             const py = e.clientY - rect.top;
 
-            // Handle dragging
-            if (isDraggingRef.current) {
+            // Handle dragging - check lastMousePosRef to know if we're actually dragging
+            // (state might not be updated yet within this event handler)
+            if (lastMousePosRef.current) {
                 // If onMouseMovePoint is provided, use drag for iteration display instead of panning
                 if (onMouseMovePoint) {
                     onMouseMovePoint(px, py);
-                } else if (lastMousePosRef.current) {
+                } else {
                     // Regular pan behavior
                     const deltaX = e.clientX - lastMousePosRef.current.x;
                     const deltaY = e.clientY - lastMousePosRef.current.y;
@@ -165,8 +188,8 @@ const MandelbrotCanvas: React.FC<MandelbrotCanvasProps> = React.memo(({
     );
 
     const handleMouseLeave = useCallback(() => {
-        if (isDraggingRef.current) {
-            isDraggingRef.current = false;
+        if (lastMousePosRef.current) {
+            setIsDragging(false);
             lastMousePosRef.current = null;
             onMouseUpPoint?.();
         }
@@ -182,20 +205,13 @@ const MandelbrotCanvas: React.FC<MandelbrotCanvasProps> = React.memo(({
                 ref={canvasRef}
                 width={viewport.width}
                 height={viewport.height}
-                onWheel={handleWheel}
                 onMouseDown={handleMouseDown}
                 onMouseUp={handleMouseUp}
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
                 onContextMenu={handleContextMenu}
-                style={{ cursor: customCursor || (isDraggingRef.current ? 'grabbing' : (isRendering ? 'wait' : 'grab')) }}
+                style={{ cursor: customCursor || (isDragging ? 'grabbing' : (isRendering ? 'wait' : 'grab')) }}
             />
-            {isRendering && (
-                <div className="rendering-overlay">
-                    <div className="spinner"></div>
-                    <span>Calculating...</span>
-                </div>
-            )}
         </div>
     );
 });
