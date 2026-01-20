@@ -987,12 +987,12 @@ footer sub {
 .scene5-container {
   display: flex;
   flex-direction: row;
-  gap: 1.5rem;
+  gap: 2.5rem;
   flex: 1;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: flex-start;
   position: relative;
-  padding: 2rem;
+  padding: 2rem 2rem 2rem 20rem;
 }
 
 .scene5-left {
@@ -1004,7 +1004,7 @@ footer sub {
 }
 
 .scene5-right {
-  width: 500px;
+  width: 650px;
   min-height: 600px;
   display: flex;
   flex-direction: column;
@@ -1058,6 +1058,25 @@ footer sub {
 .catalan-table tr.highlight td {
   color: #fff;
   font-weight: 600;
+}
+
+/* Target number being computed - gold/yellow highlight */
+.catalan-table tr.highlight-target {
+  background: rgba(234, 179, 8, 0.3);
+}
+
+.catalan-table tr.highlight-target td {
+  color: #fbbf24;
+  font-weight: 600;
+}
+
+/* Source numbers that will be animated - subtle highlight */
+.catalan-table tr.highlight-source {
+  background: rgba(34, 197, 94, 0.15);
+}
+
+.catalan-table tr.highlight-source td.catalan-value {
+  color: #4ade80;
 }
 
 .catalan-index {
@@ -1182,6 +1201,32 @@ footer sub {
   padding: 2px 6px;
   border-radius: 4px;
   border: 1px solid rgba(34, 197, 94, 0.3);
+  transition: opacity 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+    transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Intro animation states for values flying from LHS to RHS */
+.mult-value.intro-hidden {
+  opacity: 0;
+  transform: scale(0.5) translateX(-20px);
+}
+
+.mult-value.intro-visible {
+  opacity: 1;
+  transform: scale(1) translateX(0);
+  animation: intro-value-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes intro-value-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) translateX(-20px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1) translateX(0);
+  }
 }
 
 .mult-symbol {
@@ -1259,7 +1304,7 @@ footer sub {
 
 .sum-plus {
   color: var(--text-secondary);
-  margin: 0 6px;
+  margin: 0;
 }
 
 .sum-product {
@@ -1277,13 +1322,13 @@ footer sub {
 }
 
 .sum-value {
-  color: #22c55e;
+  color: #fbbf24;
   transition: all 0.3s ease;
 }
 
 .sum-value.complete {
-  color: #22c55e;
-  text-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+  color: #fbbf24;
+  text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
 }
 
 .sum-check {
@@ -1305,5 +1350,39 @@ footer sub {
   100% {
     transform: scale(1);
     opacity: 1;
+  }
+}
+
+/* Flying numbers animation */
+.flying-number {
+  position: absolute;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.25);
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 2px solid rgba(34, 197, 94, 0.6);
+  box-shadow: 0 4px 20px rgba(34, 197, 94, 0.4);
+  z-index: 100;
+  pointer-events: none;
+  animation: fly-to-target 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  transform: translate(-50%, -50%);
+}
+
+@keyframes fly-to-target {
+  0% {
+    left: var(--start-x);
+    top: var(--start-y);
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+
+  100% {
+    left: var(--end-x);
+    top: var(--end-y);
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
   }
 }

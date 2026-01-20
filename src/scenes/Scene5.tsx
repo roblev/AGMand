@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 
 // Generate first N Catalan numbers
 function generateCatalanNumbers(n: number): number[] {
@@ -43,12 +43,54 @@ interface AnimationStep {
     runningSum?: number;
 }
 
+// Intro animation phases
+type IntroPhase = 'none' | 'ascending' | 'descending' | 'done';
+
+// Intro animation step
+interface IntroStep {
+    phase: 'ascending' | 'descending';
+    sourceIndex: number; // Index in the Catalan table (LHS)
+    targetRow: number; // Which row in the RHS
+    targetSide: 'left' | 'right'; // Which box in the row
+}
+
+// Flying number for visual animation
+interface FlyingNumber {
+    id: number;
+    value: number;
+    sourceIndex: number;
+    targetRow: number;
+    targetSide: 'left' | 'right';
+    startX: number;
+    startY: number;
+    endX: number;
+    endY: number;
+    isAnimating: boolean;
+}
+
 function Scene5() {
     const [targetN, setTargetN] = useState<number | null>(null);
     const [animationSteps, setAnimationSteps] = useState<AnimationStep[]>([]);
     const [currentStepIndex, setCurrentStepIndex] = useState(-1);
     const [isAnimating, setIsAnimating] = useState(false);
     const animationRef = useRef<number | null>(null);
+
+    // Intro animation state
+    const [introPhase, setIntroPhase] = useState<IntroPhase>('none');
+    const [introStepIndex, setIntroStepIndex] = useState(-1);
+    const [introSteps, setIntroSteps] = useState<IntroStep[]>([]);
+    const introAnimationRef = useRef<number | null>(null);
+
+    // Flying numbers state
+    const [flyingNumbers, setFlyingNumbers] = useState<FlyingNumber[]>([]);
+    const flyingIdCounter = useRef(0);
+
+    // Refs for DOM elements to calculate animation positions
+    const containerRef = useRef<HTMLDivElement>(null);
+    const lhsValueRefs = useRef<Map<number, HTMLTableCellElement>>(new Map());
+    const rhsLeftBoxRefs = useRef<Map<number, HTMLSpanElement>>(new Map());
+    const rhsRightBoxRefs = useRef<Map<number, HTMLSpanElement>>(new Map());
+    const rhsRowsRef = useRef<HTMLDivElement>(null);
 
     // Build animation steps for computing C_n via recurrence
     const buildAnimationSteps = useCallback((n: number): AnimationStep[] => {
@@ -74,34 +116,137 @@ function Scene5() {
         return steps;
     }, []);
 
+    // Build intro animation steps - first ascending order, then descending order
+    const buildIntroSteps = useCallback((n: number): IntroStep[] => {
+        const steps: IntroStep[] = [];
+
+        // Ascending: C_0 to C_{n-1} go to LEFT boxes of rows 0 to n-1
+        for (let i = 0; i < n; i++) {
+            steps.push({
+                phase: 'ascending',
+                sourceIndex: i,
+                targetRow: i,
+                targetSide: 'left'
+            });
+        }
+
+        // Descending: C_{n-1} to C_0 go to RIGHT boxes of rows 0 to n-1
+        for (let i = 0; i < n; i++) {
+            const j = n - 1 - i;  // j goes n-1, n-2, ..., 0
+            steps.push({
+                phase: 'descending',
+                sourceIndex: j,
+                targetRow: i,
+                targetSide: 'right'
+            });
+        }
+
+        return steps;
+    }, []);
+
+    // Spawn a flying number from LHS to RHS
+    const spawnFlyingNumber = useCallback((step: IntroStep) => {
+        const container = containerRef.current;
+        const sourceCell = lhsValueRefs.current.get(step.sourceIndex);
+        const targetBox = step.targetSide === 'left'
+            ? rhsLeftBoxRefs.current.get(step.targetRow)
+            : rhsRightBoxRefs.current.get(step.targetRow);
+
+        if (!container || !sourceCell || !targetBox) return;
+
+        const containerRect = container.getBoundingClientRect();
+        const sourceRect = sourceCell.getBoundingClientRect();
+        const targetRect = targetBox.getBoundingClientRect();
+
+        const newFlyingNumber: FlyingNumber = {
+            id: flyingIdCounter.current++,
+            value: catalanNumbers[step.sourceIndex],
+            sourceIndex: step.sourceIndex,
+            targetRow: step.targetRow,
+            targetSide: step.targetSide,
+            startX: sourceRect.left - containerRect.left + sourceRect.width / 2,
+            startY: sourceRect.top - containerRect.top + sourceRect.height / 2,
+            endX: targetRect.left - containerRect.left + targetRect.width / 2,
+            endY: targetRect.top - containerRect.top + targetRect.height / 2,
+            isAnimating: true
+        };
+
+        setFlyingNumbers(prev => [...prev, newFlyingNumber]);
+
+        // Remove after animation completes
+        setTimeout(() => {
+            setFlyingNumbers(prev => prev.filter(f => f.id !== newFlyingNumber.id));
+        }, 650);
+    }, []);
+
     // Start animation for a given n
     const startAnimation = useCallback((n: number) => {
         // Clear any existing animation
         if (animationRef.current) {
             clearTimeout(animationRef.current);
         }
+        if (introAnimationRef.current) {
+            clearTimeout(introAnimationRef.current);
+        }
 
         setTargetN(n);
-        const steps = buildAnimationSteps(n);
-        setAnimationSteps(steps);
-        setCurrentStepIndex(-1);
-        setIsAnimating(true);
+        setFlyingNumbers([]);
+        const mainSteps = buildAnimationSteps(n);
+        const introAnimSteps = buildIntroSteps(n);
 
-        // Animate through steps
-        let stepIndex = 0;
-        const animateStep = () => {
-            if (stepIndex < steps.length) {
-                setCurrentStepIndex(stepIndex);
-                stepIndex++;
-                animationRef.current = window.setTimeout(animateStep, 600);
+        setAnimationSteps(mainSteps);
+        setIntroSteps(introAnimSteps);
+        setCurrentStepIndex(-1);
+        setIntroStepIndex(-1);
+        setIsAnimating(true);
+        setIntroPhase('ascending');
+
+        // Start with intro animation - delay to allow RHS to render
+        let introIdx = 0;
+        const animateIntro = () => {
+            if (introIdx < introAnimSteps.length) {
+                const currentIntroStep = introAnimSteps[introIdx];
+
+                // Update phase if we switch from ascending to descending
+                if (currentIntroStep.phase === 'descending' && introIdx > 0 &&
+                    introAnimSteps[introIdx - 1].phase === 'ascending') {
+                    setIntroPhase('descending');
+                    // Pause before descending phase
+                    introAnimationRef.current = window.setTimeout(() => {
+                        spawnFlyingNumber(introAnimSteps[introIdx]);
+                        setIntroStepIndex(introIdx);
+                        introIdx++;
+                        introAnimationRef.current = window.setTimeout(animateIntro, 400);
+                    }, 700);
+                    return;
+                }
+
+                // Spawn flying number
+                spawnFlyingNumber(currentIntroStep);
+                setIntroStepIndex(introIdx);
+                introIdx++;
+                introAnimationRef.current = window.setTimeout(animateIntro, 400);
             } else {
-                setIsAnimating(false);
+                // Intro done, start main animation
+                setIntroPhase('done');
+                let stepIndex = 0;
+                const animateStep = () => {
+                    if (stepIndex < mainSteps.length) {
+                        setCurrentStepIndex(stepIndex);
+                        stepIndex++;
+                        animationRef.current = window.setTimeout(animateStep, 600);
+                    } else {
+                        setIsAnimating(false);
+                    }
+                };
+                // Start main animation after a brief delay
+                animationRef.current = window.setTimeout(animateStep, 500);
             }
         };
 
-        // Start after a brief delay
-        animationRef.current = window.setTimeout(animateStep, 300);
-    }, [buildAnimationSteps]);
+        // Start intro after a brief delay to ensure DOM is rendered
+        introAnimationRef.current = window.setTimeout(animateIntro, 500);
+    }, [buildAnimationSteps, buildIntroSteps, spawnFlyingNumber]);
 
     // Handle key presses - use function keys to avoid conflict with scene selection
     const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -124,8 +269,46 @@ function Scene5() {
             if (animationRef.current) {
                 clearTimeout(animationRef.current);
             }
+            if (introAnimationRef.current) {
+                clearTimeout(introAnimationRef.current);
+            }
         };
     }, []);
+
+    // Compute which boxes have been filled during intro animation
+    const filledLeftBoxes = useMemo(() => {
+        if (introPhase === 'none' || targetN === null) return new Set<number>();
+        const filled = new Set<number>();
+        for (let i = 0; i <= introStepIndex; i++) {
+            const step = introSteps[i];
+            if (step && step.targetSide === 'left') {
+                filled.add(step.targetRow);
+            }
+        }
+        return filled;
+    }, [introPhase, introStepIndex, introSteps, targetN]);
+
+    const filledRightBoxes = useMemo(() => {
+        if (introPhase === 'none' || targetN === null) return new Set<number>();
+        const filled = new Set<number>();
+        for (let i = 0; i <= introStepIndex; i++) {
+            const step = introSteps[i];
+            if (step && step.targetSide === 'right') {
+                filled.add(step.targetRow);
+            }
+        }
+        return filled;
+    }, [introPhase, introStepIndex, introSteps, targetN]);
+
+    // Current intro step for highlighting source in LHS
+    const currentIntroSource = useMemo(() => {
+        if (introPhase === 'none' || introPhase === 'done' || introStepIndex < 0) return -1;
+        const step = introSteps[introStepIndex];
+        return step ? step.sourceIndex : -1;
+    }, [introPhase, introStepIndex, introSteps]);
+
+    // Check if intro is complete (all boxes filled)
+    const introComplete = introPhase === 'done';
 
     // Get current animation state
     const currentStep = currentStepIndex >= 0 ? animationSteps[currentStepIndex] : null;
@@ -154,7 +337,7 @@ function Scene5() {
     const showingMultiply = currentStep?.type === 'multiply' || currentStep?.type === 'add-to-sum';
 
     return (
-        <div className="scene5-container">
+        <div className="scene5-container" ref={containerRef}>
             {/* Left panel - Catalan numbers (compact) */}
             <div className="scene5-left glass-card">
                 <h2>Catalan Numbers</h2>
@@ -167,12 +350,37 @@ function Scene5() {
                             </tr>
                         </thead>
                         <tbody>
-                            {catalanNumbers.map((value, n) => (
-                                <tr key={n} className={targetN !== null && (n === leftIdx || n === rightIdx) ? 'highlight' : ''}>
-                                    <td className="catalan-index">{n}</td>
-                                    <td className="catalan-value">{formatNumber(value)}</td>
-                                </tr>
-                            ))}
+                            {catalanNumbers.map((value, n) => {
+                                // Determine highlight states
+                                const isTarget = targetN !== null && n === targetN;
+                                const isSourceNumber = targetN !== null && n < targetN;
+                                const isCurrentlyFlying = n === currentIntroSource;
+                                const isMainHighlight = introComplete && (n === leftIdx || n === rightIdx);
+
+                                // Build class names
+                                let rowClass = '';
+                                if (isTarget) {
+                                    rowClass = 'highlight-target';
+                                } else if (isCurrentlyFlying || isMainHighlight) {
+                                    rowClass = 'highlight';
+                                } else if (isSourceNumber) {
+                                    rowClass = 'highlight-source';
+                                }
+
+                                return (
+                                    <tr key={n} className={rowClass}>
+                                        <td className="catalan-index">{n}</td>
+                                        <td
+                                            className="catalan-value"
+                                            ref={el => {
+                                                if (el) lhsValueRefs.current.set(n, el);
+                                            }}
+                                        >
+                                            {formatNumber(value)}
+                                        </td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
                 </div>
@@ -205,12 +413,16 @@ function Scene5() {
                         </div>
 
                         {/* Row-by-row multiplication display */}
-                        <div className="multiplication-rows">
+                        <div className="multiplication-rows" ref={rhsRowsRef}>
                             {Array.from({ length: targetN }, (_, i) => {
                                 const j = targetN - 1 - i;
-                                const isActive = i === leftIdx;
+                                const isActive = introComplete && i === leftIdx;
                                 const isCompleted = completedProducts.some(p => p.i === i);
                                 const showResult = isCompleted || (isActive && showingMultiply);
+
+                                // Check if boxes are filled by intro animation
+                                const leftFilled = filledLeftBoxes.has(i);
+                                const rightFilled = filledRightBoxes.has(i);
 
                                 return (
                                     <div
@@ -219,12 +431,26 @@ function Scene5() {
                                     >
                                         <span className="mult-left">
                                             <span className="mult-label"><span className="math-var">C</span>{formatSubscript(i)}</span>
-                                            <span className="mult-value">{catalanNumbers[i]}</span>
+                                            <span
+                                                className={`mult-value ${leftFilled ? 'intro-visible' : 'intro-hidden'}`}
+                                                ref={el => {
+                                                    if (el) rhsLeftBoxRefs.current.set(i, el);
+                                                }}
+                                            >
+                                                {catalanNumbers[i]}
+                                            </span>
                                         </span>
                                         <span className={`mult-symbol ${isActive || isCompleted ? 'visible' : ''}`}>×</span>
                                         <span className="mult-right">
                                             <span className="mult-label"><span className="math-var">C</span>{formatSubscript(j)}</span>
-                                            <span className="mult-value">{catalanNumbers[j]}</span>
+                                            <span
+                                                className={`mult-value ${rightFilled ? 'intro-visible' : 'intro-hidden'}`}
+                                                ref={el => {
+                                                    if (el) rhsRightBoxRefs.current.set(i, el);
+                                                }}
+                                            >
+                                                {catalanNumbers[j]}
+                                            </span>
                                         </span>
                                         <span className={`mult-equals ${showResult ? 'visible' : ''}`}>=</span>
                                         <span className={`mult-product ${showResult ? 'visible' : ''}`}>
@@ -246,9 +472,9 @@ function Scene5() {
                             ))}
                             {completedProducts.length === 0 && <span className="sum-empty">—</span>}
                             <span className="sum-equals"> = </span>
-                            <span className={`sum-value ${!isAnimating && totalSum === catalanNumbers[targetN] ? 'complete' : ''}`}>
+                            <span className={`sum-value ${!isAnimating && targetN !== null && totalSum === catalanNumbers[targetN] ? 'complete' : ''}`}>
                                 {totalSum}
-                                {!isAnimating && totalSum === catalanNumbers[targetN] && (
+                                {!isAnimating && targetN !== null && totalSum === catalanNumbers[targetN] && (
                                     <span className="sum-check"> ✓</span>
                                 )}
                             </span>
@@ -264,6 +490,22 @@ function Scene5() {
                     <p>Press F2-F9 to animate recurrence</p>
                 </div>
             </div>
+
+            {/* Flying numbers overlay */}
+            {flyingNumbers.map(fn => (
+                <div
+                    key={fn.id}
+                    className="flying-number"
+                    style={{
+                        '--start-x': `${fn.startX}px`,
+                        '--start-y': `${fn.startY}px`,
+                        '--end-x': `${fn.endX}px`,
+                        '--end-y': `${fn.endY}px`,
+                    } as React.CSSProperties}
+                >
+                    {fn.value}
+                </div>
+            ))}
         </div>
     );
 }
