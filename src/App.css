@@ -982,3 +982,328 @@ footer sub {
   top: 10px;
   left: 10px;
 }
+
+/* Scene 5 Styles - Catalan Numbers */
+.scene5-container {
+  display: flex;
+  flex-direction: row;
+  gap: 1.5rem;
+  flex: 1;
+  justify-content: center;
+  align-items: flex-start;
+  position: relative;
+  padding: 2rem;
+}
+
+.scene5-left {
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.scene5-right {
+  width: 500px;
+  min-height: 600px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.scene5-left h2,
+.scene5-right h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.catalan-table-container.compact {
+  overflow-y: auto;
+  max-height: 480px;
+  scrollbar-width: thin;
+}
+
+.catalan-table {
+  border-collapse: collapse;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.85rem;
+  width: 100%;
+}
+
+.catalan-table th,
+.catalan-table td {
+  padding: 4px 12px;
+  text-align: left;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.catalan-table th {
+  background: rgb(30, 30, 45);
+  color: var(--text-primary);
+  font-weight: 500;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.catalan-table tr.highlight {
+  background: rgba(99, 102, 241, 0.3);
+}
+
+.catalan-table tr.highlight td {
+  color: #fff;
+  font-weight: 600;
+}
+
+.catalan-index {
+  width: 40px;
+  color: var(--text-secondary);
+  text-align: center !important;
+}
+
+.catalan-value {
+  color: #22c55e;
+  font-weight: 500;
+}
+
+.formula-compact {
+  font-size: 0.95rem;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.summation-inline {
+  font-size: 1.2em;
+  margin: 0 4px;
+}
+
+/* Recurrence visualization */
+.recurrence-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.recurrence-empty kbd {
+  display: inline-block;
+  padding: 4px 10px;
+  margin: 0 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+.recurrence-hint {
+  font-size: 0.9em;
+  opacity: 0.7;
+}
+
+.recurrence-visualization {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.recurrence-target {
+  font-size: 1.2rem;
+  font-weight: 500;
+  text-align: center;
+  padding: 12px;
+  background: rgba(99, 102, 241, 0.15);
+  border-radius: 8px;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.multiplication-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.mult-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  font-family: 'JetBrains Mono', monospace;
+  min-height: 42px;
+}
+
+.mult-row.active {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: #6366f1;
+}
+
+.mult-row.completed {
+  opacity: 0.7;
+}
+
+.mult-left,
+.mult-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mult-left {
+  width: 55px;
+}
+
+.mult-label {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.mult-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.15);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.mult-symbol {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  visibility: hidden;
+}
+
+.mult-symbol.visible {
+  visibility: visible;
+  color: var(--text-primary);
+}
+
+.mult-equals {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  visibility: hidden;
+  margin-left: 8px;
+  margin-right: 6px;
+}
+
+.mult-equals.visible {
+  visibility: visible;
+}
+
+.mult-product {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #a855f7;
+  background: rgba(168, 85, 247, 0.15);
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  visibility: hidden;
+}
+
+.mult-product.visible {
+  visibility: visible;
+  animation: product-pop 0.3s ease-out;
+}
+
+@keyframes product-pop {
+  0% {
+    transform: scale(0.8);
+  }
+
+  50% {
+    transform: scale(1.1);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.running-sum {
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1rem;
+  line-height: 1.8;
+}
+
+.sum-label {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.sum-terms {
+  display: inline;
+}
+
+.sum-plus {
+  color: var(--text-secondary);
+  margin: 0 6px;
+}
+
+.sum-product {
+  color: #a855f7;
+}
+
+.sum-empty {
+  color: var(--text-secondary);
+  opacity: 0.5;
+}
+
+.sum-equals {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+}
+
+.sum-value {
+  color: #22c55e;
+  transition: all 0.3s ease;
+}
+
+.sum-value.complete {
+  color: #22c55e;
+  text-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+}
+
+.sum-check {
+  color: #22c55e;
+  margin-left: 8px;
+  animation: check-pop 0.5s ease-out;
+}
+
+@keyframes check-pop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+
+  50% {
+    transform: scale(1.3);
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

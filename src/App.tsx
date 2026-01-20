@@ -3,6 +3,7 @@ import Scene1 from './scenes/Scene1';
 import Scene2 from './scenes/Scene2';
 import Scene3 from './scenes/Scene3';
 import Scene4 from './scenes/Scene4';
+import Scene5 from './scenes/Scene5';
 import BlankScene from './scenes/BlankScene';
 import './App.css';
 
@@ -32,6 +33,7 @@ function App() {
       case 4:
         return <Scene4 />;
       case 5:
+        return <Scene5 />;
       case 6:
       case 7:
       case 8:
