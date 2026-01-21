@@ -4,6 +4,7 @@ import Scene2 from './scenes/Scene2';
 import Scene3 from './scenes/Scene3';
 import Scene4 from './scenes/Scene4';
 import Scene5 from './scenes/Scene5';
+import Scene6 from './scenes/Scene6';
 import BlankScene from './scenes/BlankScene';
 import './App.css';
 
@@ -35,6 +36,7 @@ function App() {
       case 5:
         return <Scene5 />;
       case 6:
+        return <Scene6 />;
       case 7:
       case 8:
       case 9:

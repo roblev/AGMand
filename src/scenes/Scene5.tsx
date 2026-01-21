@@ -250,8 +250,8 @@ function Scene5() {
 
     // Handle key presses - use function keys to avoid conflict with scene selection
     const handleKeyDown = useCallback((e: KeyboardEvent) => {
-        // F2 through F9 for visualization
-        if (e.key >= 'F2' && e.key <= 'F9') {
+        // F2 through F12 for visualization
+        if (e.key >= 'F2' && e.key <= 'F9' || e.key === 'F10' || e.key === 'F11' || e.key === 'F12') {
             e.preventDefault();
             const n = parseInt(e.key.substring(1), 10); // Extract number from "F2", "F3", etc.
             startAnimation(n);
@@ -402,7 +402,7 @@ function Scene5() {
 
                 {targetN === null ? (
                     <div className="recurrence-empty">
-                        <p>Press a function key <kbd>F2</kbd> - <kbd>F9</kbd> to visualize</p>
+                        <p>Press a function key <kbd>F2</kbd> - <kbd>F12</kbd> to visualize</p>
                         <p className="recurrence-hint">how <span className="math-var">C</span><sub><span className="math-var">n</span></sub> is computed from previous values</p>
                     </div>
                 ) : (
@@ -487,7 +487,7 @@ function Scene5() {
             <div className="overlay-container">
                 <div className="glass-card title-card">
                     <h1>Catalan Numbers</h1>
-                    <p>Press F2-F9 to animate recurrence</p>
+                    <p>Press F2-F12 to animate recurrence</p>
                 </div>
             </div>
 

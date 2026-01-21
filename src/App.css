@@ -686,9 +686,10 @@ footer sub {
 }
 
 .formula-power {
-  font-size: 0.85em;
+  font-size: 1.1em;
   color: #a855f7;
   vertical-align: super;
+  font-weight: 600;
 }
 
 .scene3-hint {
@@ -1385,4 +1386,638 @@ footer sub {
     opacity: 0;
     transform: translate(-50%, -50%) scale(0.8);
   }
+}
+
+/* Scene 6 Styles - Mandelbrot Formula Expansion */
+.scene6-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  flex: 1;
+  position: relative;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+.scene6-content {
+  max-width: 1200px;
+  width: 100%;
+  min-height: 600px;
+}
+
+.scene6-content h2 {
+  margin: 0 0 8px 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.scene6-subtitle {
+  margin: 0 0 24px 0;
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
+.scene6-idle {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+  color: var(--text-secondary);
+  min-height: 300px;
+}
+
+.scene6-idle kbd {
+  display: inline-block;
+  padding: 4px 10px;
+  margin: 0 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+.scene6-hint {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.scene6-hint kbd {
+  display: inline-block;
+  padding: 4px 10px;
+  margin: 0 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.9em;
+}
+
+/* Expansion stages */
+.expansion-stage {
+  margin-bottom: 24px;
+  animation: stage-fade-in 0.4s ease-out;
+}
+
+.expansion-stage h3 {
+  margin: 0 0 12px 0;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+@keyframes stage-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Main formula display */
+.formula-line {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 1.2rem;
+  line-height: 1.8;
+}
+
+.formula-line.main-formula {
+  background: rgba(99, 102, 241, 0.1);
+  border-color: rgba(99, 102, 241, 0.2);
+}
+
+.z-placeholder {
+  background: rgba(168, 85, 247, 0.2);
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(168, 85, 247, 0.4);
+}
+
+.expanded-bracket {
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+}
+
+.expanded-bracket.visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Catalan number highlighting */
+.catalan-highlight {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.3), rgba(245, 158, 11, 0.3));
+  color: #fbbf24 !important;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(251, 191, 36, 0.5);
+  font-weight: 700;
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.3);
+}
+
+/* Multiplication table */
+.multiplication-table-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  overflow-x: auto;
+  padding: 8px 0;
+}
+
+.multiplication-table {
+  border-collapse: collapse;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.85rem;
+}
+
+.multiplication-table th,
+.multiplication-table td {
+  padding: 8px 12px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  min-width: 70px;
+}
+
+.multiplication-table th {
+  background: rgba(99, 102, 241, 0.2);
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.multiplication-table .corner-cell {
+  background: rgba(99, 102, 241, 0.3);
+  font-weight: 700;
+  color: #a855f7;
+}
+
+.multiplication-table tbody th {
+  background: rgba(168, 85, 247, 0.2);
+}
+
+.grid-cell {
+  background: rgba(255, 255, 255, 0.02);
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 0.2s ease-out, transform 0.2s ease-out, background 0.2s ease-out;
+}
+
+.grid-cell.revealed {
+  opacity: 1;
+  transform: scale(1);
+  animation: cell-pop 0.3s ease-out;
+}
+
+.grid-cell.catalan-cell.revealed {
+  background: rgba(251, 191, 36, 0.15);
+}
+
+.cell-coeff {
+  color: #22c55e;
+  font-weight: 600;
+}
+
+.cell-coeff.catalan-highlight {
+  color: #fbbf24;
+}
+
+@keyframes cell-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+
+  50% {
+    transform: scale(1.1);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.grid-plus-c {
+  display: flex;
+  align-items: center;
+  margin-left: 16px;
+  font-size: 1.5rem;
+  font-weight: 600;
+  gap: 24px;
+}
+
+/* Collect terms columns */
+.collect-columns {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.collect-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  min-width: 80px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+}
+
+.collect-column.revealed {
+  opacity: 1;
+  transform: translateY(0);
+  animation: column-reveal 0.4s ease-out;
+}
+
+@keyframes column-reveal {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.9);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.column-header {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #6366f1;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  width: 100%;
+  text-align: center;
+}
+
+.column-terms {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.column-term .plus {
+  color: var(--text-secondary);
+  margin-right: 4px;
+}
+
+.column-sum {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #22c55e;
+  padding-top: 8px;
+  border-top: 2px solid rgba(34, 197, 94, 0.3);
+  width: 100%;
+  text-align: center;
+}
+
+.column-sum.catalan-highlight {
+  color: #fbbf24;
+  border-top-color: rgba(251, 191, 36, 0.3);
+}
+
+.catalan-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 6px;
+  background: rgba(251, 191, 36, 0.2);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: #fbbf24;
+  vertical-align: middle;
+}
+
+.plus-c-column {
+  background: rgba(168, 85, 247, 0.1);
+  border-color: rgba(168, 85, 247, 0.2);
+}
+
+.column-source {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  opacity: 0.8;
+  margin-top: 4px;
+  font-weight: 400;
+}
+
+.collect-separator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  opacity: 0.5;
+}
+
+/* Power-based coloring for collect columns - matches matrix colors */
+.collect-column.power-color-2 {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.collect-column.power-color-3 {
+  background: rgba(249, 115, 22, 0.25);
+  border-color: rgba(249, 115, 22, 0.4);
+}
+
+.collect-column.power-color-4 {
+  background: rgba(234, 179, 8, 0.25);
+  border-color: rgba(234, 179, 8, 0.4);
+}
+
+.collect-column.power-color-5 {
+  background: rgba(34, 197, 94, 0.25);
+  border-color: rgba(34, 197, 94, 0.4);
+}
+
+.collect-column.power-color-6 {
+  background: rgba(6, 182, 212, 0.25);
+  border-color: rgba(6, 182, 212, 0.4);
+}
+
+.collect-column.power-color-7 {
+  background: rgba(59, 130, 246, 0.25);
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.collect-column.power-color-8 {
+  background: rgba(139, 92, 246, 0.25);
+  border-color: rgba(139, 92, 246, 0.4);
+}
+
+.collect-column.power-color-9 {
+  background: rgba(236, 72, 153, 0.25);
+  border-color: rgba(236, 72, 153, 0.4);
+}
+
+.collect-column.power-color-10 {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.collect-column.power-color-11 {
+  background: rgba(249, 115, 22, 0.25);
+  border-color: rgba(249, 115, 22, 0.4);
+}
+
+.collect-column.power-color-12 {
+  background: rgba(234, 179, 8, 0.25);
+  border-color: rgba(234, 179, 8, 0.4);
+}
+
+/* Power-based coloring for formula numbers in final result */
+.formula-number.power-color-1 {
+  background: rgba(168, 85, 247, 0.35);
+}
+
+.formula-number.power-color-2 {
+  background: rgba(239, 68, 68, 0.35);
+}
+
+.formula-number.power-color-3 {
+  background: rgba(249, 115, 22, 0.35);
+}
+
+.formula-number.power-color-4 {
+  background: rgba(234, 179, 8, 0.35);
+}
+
+.formula-number.power-color-5 {
+  background: rgba(34, 197, 94, 0.35);
+}
+
+.formula-number.power-color-6 {
+  background: rgba(6, 182, 212, 0.35);
+}
+
+.formula-number.power-color-7 {
+  background: rgba(59, 130, 246, 0.35);
+}
+
+.formula-number.power-color-8 {
+  background: rgba(139, 92, 246, 0.35);
+}
+
+.formula-number.power-color-9 {
+  background: rgba(236, 72, 153, 0.35);
+}
+
+.formula-number.power-color-10 {
+  background: rgba(239, 68, 68, 0.35);
+}
+
+.formula-number.power-color-11 {
+  background: rgba(249, 115, 22, 0.35);
+}
+
+.formula-number.power-color-12 {
+  background: rgba(234, 179, 8, 0.35);
+}
+
+/* Final result */
+.stage-final {
+  padding: 20px;
+  background: rgba(34, 197, 94, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.final-polynomial {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 1.1rem;
+  line-height: 1.8;
+  margin-bottom: 16px;
+}
+
+.catalan-legend {
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: rgba(251, 191, 36, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(251, 191, 36, 0.2);
+}
+
+.catalan-legend h4 {
+  margin: 0 0 12px 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #fbbf24;
+}
+
+.catalan-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.catalan-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.95rem;
+}
+
+.catalan-label {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+/* Power-based coloring for multiplication grid - matches Scene 3 diagonal colors */
+/* 8-color palette: red, orange, yellow, green, cyan, blue, violet, pink */
+
+/* c² - red */
+.grid-cell.power-color-2.revealed,
+.grid-cell.power-color-2 {
+  background: rgba(239, 68, 68, 0.25);
+}
+
+.cell-coeff.power-color-2 {
+  color: #ef4444;
+}
+
+/* c³ - orange */
+.grid-cell.power-color-3.revealed,
+.grid-cell.power-color-3 {
+  background: rgba(249, 115, 22, 0.25);
+}
+
+.cell-coeff.power-color-3 {
+  color: #f97316;
+}
+
+/* c⁴ - yellow */
+.grid-cell.power-color-4.revealed,
+.grid-cell.power-color-4 {
+  background: rgba(234, 179, 8, 0.25);
+}
+
+.cell-coeff.power-color-4 {
+  color: #eab308;
+}
+
+/* c⁵ - green */
+.grid-cell.power-color-5.revealed,
+.grid-cell.power-color-5 {
+  background: rgba(34, 197, 94, 0.25);
+}
+
+.cell-coeff.power-color-5 {
+  color: #22c55e;
+}
+
+/* c⁶ - cyan */
+.grid-cell.power-color-6.revealed,
+.grid-cell.power-color-6 {
+  background: rgba(6, 182, 212, 0.25);
+}
+
+.cell-coeff.power-color-6 {
+  color: #06b6d4;
+}
+
+/* c⁷ - blue */
+.grid-cell.power-color-7.revealed,
+.grid-cell.power-color-7 {
+  background: rgba(59, 130, 246, 0.25);
+}
+
+.cell-coeff.power-color-7 {
+  color: #3b82f6;
+}
+
+/* c⁸ - violet */
+.grid-cell.power-color-8.revealed,
+.grid-cell.power-color-8 {
+  background: rgba(139, 92, 246, 0.25);
+}
+
+.cell-coeff.power-color-8 {
+  color: #8b5cf6;
+}
+
+/* c⁹ - pink */
+.grid-cell.power-color-9.revealed,
+.grid-cell.power-color-9 {
+  background: rgba(236, 72, 153, 0.25);
+}
+
+.cell-coeff.power-color-9 {
+  color: #ec4899;
+}
+
+/* c¹⁰ - red (cycle) */
+.grid-cell.power-color-10.revealed,
+.grid-cell.power-color-10 {
+  background: rgba(239, 68, 68, 0.25);
+}
+
+.cell-coeff.power-color-10 {
+  color: #ef4444;
+}
+
+/* c¹¹ - orange (cycle) */
+.grid-cell.power-color-11.revealed,
+.grid-cell.power-color-11 {
+  background: rgba(249, 115, 22, 0.25);
+}
+
+.cell-coeff.power-color-11 {
+  color: #f97316;
+}
+
+/* c¹² - yellow (cycle) */
+.grid-cell.power-color-12.revealed,
+.grid-cell.power-color-12 {
+  background: rgba(234, 179, 8, 0.25);
+}
+
+.cell-coeff.power-color-12 {
+  color: #eab308;
 }
